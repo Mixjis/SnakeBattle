@@ -172,12 +172,19 @@ bool Snake::checkWallCollision() const {
 
 // GameState class implementation
 GameState::GameState() : gameTime(0) {
-    if (!eatBuffer.loadFromFile("assets/eating.ogg")) {
-        std::cerr << "Could not load eating.ogg!" << std::endl;
-    }
-    else {
-        eatSound.setBuffer(eatBuffer);
-    }
+    try {
+        if (!eatBuffer.loadFromFile("assets/eating.ogg")) {
+			throw std::runtime_error("Cannot load eating.ogg sound");
+        }
+        else {
+            eatSound.setBuffer(eatBuffer);
+        }
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error loading sound: " << e.what() << std::endl;
+		exit(1);
+	}
+    
 };
 
 // Generowanie jedzenia

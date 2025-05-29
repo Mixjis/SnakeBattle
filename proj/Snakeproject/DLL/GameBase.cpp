@@ -238,22 +238,31 @@ GameBase::GameBase(sf::RenderWindow& existingWindow) : window(existingWindow), l
     window.setFramerateLimit(60);
     initText();
 
-    if (!backgroundImage.loadFromFile("assets/hexagon.png")) {
-        std::cerr << "Cannot load image !" << std::endl;
-        exit(1);
+
+    try {
+        if (!backgroundImage.loadFromFile("assets/hexagon.png")) {
+            throw std::runtime_error("Cannot load hexagon.png image");
+            exit(1);
+        }
+        else {
+            bgSprite.setTexture(backgroundImage);
+        }
+
+        if (!font.loadFromFile("assets/Arimo.ttf")) {
+			throw std::runtime_error("Cannot load font Arimo.ttf");
+            exit(1);
+        }
+
+        if (!gameMusic.openFromFile("assets/bgmusic2.mp3")) {
+			throw std::runtime_error("Cannot open bgmusic2.mp3 file");
+            exit(1);
+        }else gameMusic.setLoop(true);
     }
+	catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		exit(1);
+	}
     
-    bgSprite.setTexture(backgroundImage);
-
-    if (!font.loadFromFile("assets/Arimo.ttf")) {
-        std::cerr << "Cannot load font!" << std::endl;
-        exit(1);
-    }
-
-    if (!gameMusic.openFromFile("assets/bgmusic2.mp3")) {
-        std::cerr << " Cannot load music file!" << std::endl;
-        exit(1);
-    }
-
-    gameMusic.setLoop(true);
+    
+    
 }

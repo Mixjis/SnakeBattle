@@ -1,9 +1,15 @@
 #include "GameMenu.h"
 #include <windows.h>
-#include <filesystem>
+#include <fstream>
+
+std::vector<sf::Color> GameMenu::availableColors = {
+    sf::Color::Red, sf::Color::Blue, sf::Color::Yellow, sf::Color::Magenta,
+    sf::Color::Cyan, sf::Color(255, 165, 0), sf::Color(0, 255, 0), sf::Color(255, 0, 255),
+	sf::Color(255, 192, 203), sf::Color(128, 0, 128), sf::Color(0, 128, 128)
+};
 
 void GameMenu::initNicknameInput() {
-    nicknameInput = "";
+    //nicknameInput = "";
     nicknameLabel.setFont(font);
     nicknameLabel.setString("Nickname:");
     nicknameLabel.setCharacterSize(24);
@@ -43,26 +49,80 @@ void GameMenu::drawNicknameInput() {
     nicknameText.setString(nicknameInput);
     window.draw(nicknameText);
 }
+void GameMenu::saveSettings() {
+    try {
+        std::ofstream file("settings.txt");
+        if (file) {
+            std::string nicknameStr = nicknameInput.toAnsiString();
+            file << nicknameStr << "\n";
+            file << selectedColorIndex << "\n";
+            file.close();
+            //std::cout << "SAVED: " << nicknameInput.toAnsiString() << selectedColorIndex<< "\n";
+		}
+		else throw std::runtime_error("Cannot open settings.txt");
+    }
+	catch (const std::exception& e) {
+		std::cerr << "Error saving settings: " << e.what() << std::endl;
+	}
+}
+
+void GameMenu::loadSettings() {
+    std::ifstream file("settings.txt");
+    try {
+        if (file) {
+            std::string nicknameStr;
+            std::getline(file, nicknameStr);
+            nicknameInput = sf::String(nicknameStr);
+
+            /*int r, g, b, a;
+            file >> r >> g >> b >> a;
+            selectedColor = sf::Color(r, g, b, a);*/
+            file >> selectedColorIndex;
+            selectedColor = availableColors[selectedColorIndex];
+            file.close();
+            //std::cout << "Loaded: " << nicknameInput.toAnsiString() << selectedColorIndex << "\n";
+        }
+        else throw std::runtime_error("Cannot open settings.txt");
+    }
+	catch (const std::exception& e) {
+		std::cerr << "Error loading settings: " << e.what() << std::endl;
+
+		nicknameInput = sf::String("");
+		selectedColorIndex = 0;
+		selectedColor = availableColors[selectedColorIndex];
+	}
+}
 
 GameMenu::GameMenu() : selectedMode(GameMode::NONE) {
+
+    loadSettings();
+
     // Tworzenie okna
     window.create(sf::VideoMode(1200, 800), "Snake Battle", sf::Style::Close | sf::Style::Titlebar);
 
     //Muzyka Menu
-    if (!menuMusic.openFromFile("assets/bgmusic1.mp3")) {  
-        std::cerr << "Cannot load music file!" << std::endl;
+    try {
+        if (!menuMusic.openFromFile("assets/bgmusic1.mp3")) throw std::runtime_error("Cannot open music file");
+        else menuMusic.setLoop(true);
+    }
+	catch (const std::exception& e) {
+		std::cerr << "Error loading music file: " << e.what() << std::endl;
+		exit(1);
+	}
+    
+
+    // Ładowanie czcionki Menu
+	try {
+		if (!font.loadFromFile("assets/Pixel.ttf")) throw std::runtime_error("Cannot load font");
+        else titleText.setLetterSpacing(1.5f);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error loading font: " << e.what() << std::endl;
         exit(1);
     }
-    menuMusic.setLoop(true);  // Enable looping
+    
 
-    // Ładowanie czcionki
-    if (!font.loadFromFile("assets/Pixel.ttf")) {
-        std::cerr << "Cannot load font!" << std::endl;
-        exit(1);
-    }
-    titleText.setLetterSpacing(1.5f);
-
-    // Tworzenie tytułu menu
+    // Tytuł Menu
     titleText.setFont(font);
     titleText.setString("Snake Battle!");
     titleText.setCharacterSize(100);
@@ -96,12 +156,8 @@ GameMenu::GameMenu() : selectedMode(GameMode::NONE) {
         sf::Color(70, 70, 200), sf::Color(100, 100, 220), sf::Color(50, 50, 150)
     );
 
-    availableColors = {
-    sf::Color::Red, sf::Color::Blue, sf::Color::Yellow, sf::Color::Magenta,
-    sf::Color::Cyan, sf::Color(255, 165, 0), sf::Color(0, 255, 0), sf::Color(255, 0, 255)
-    };
-    selectedColorIndex = 0;
-    selectedColor = availableColors[0];
+    //selectedColorIndex = 0;
+    //selectedColor = availableColors[0];
     // Podgląd koloru
     colorPreview.setSize(sf::Vector2f(60, 60));
     colorPreview.setOrigin(30, 0);
@@ -150,7 +206,9 @@ GameMode GameMenu::run() {
     sf::Clock clock;
     menuMusic.play();
     initNicknameInput();
+
     while (window.isOpen() && selectedMode == GameMode::NONE) {
+        
         sf::Event event;
 
         while (window.pollEvent(event)) {
@@ -181,10 +239,8 @@ GameMode GameMenu::run() {
         // Renderowanie
         window.clear(sf::Color(30, 30, 30));
 
-        // Rysowanie tytułu
         window.draw(titleText);
 
-        // Rysowanie przycisków
         hostButton->render(window);
         clientButton->render(window);
         leftColorButton->render(window);
@@ -195,6 +251,7 @@ GameMode GameMenu::run() {
         window.display();
     }
 
+    saveSettings();
     menuMusic.stop();
     return selectedMode;
 }

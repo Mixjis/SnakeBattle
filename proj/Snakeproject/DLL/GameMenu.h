@@ -27,11 +27,11 @@ private:
     Button* leftColorButton;
     Button* rightColorButton;
     sf::RectangleShape colorPreview;
-    int selectedColorIndex;
+
 
     sf::Text titleText;
     GameMode selectedMode;
-    std::vector<sf::Color> availableColors;
+    static std::vector<sf::Color> availableColors;
 
     bool nicknameActive = false;
     sf::Text nicknameLabel;
@@ -46,12 +46,16 @@ private:
 public:
     sf::String nicknameInput;
     sf::Color selectedColor;
+    int selectedColorIndex;
 
     GameMenu();
     ~GameMenu();
 
     sf::RenderWindow& getWindow();
     GameMode run();
+
+    void saveSettings();
+    void loadSettings();
 };
 
 #endif // GAMEMENU_H

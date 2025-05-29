@@ -10,15 +10,13 @@ int main() {
     
 	// Ukrycie konsoli 
     
-    HWND hwnd = GetConsoleWindow();
-    ShowWindow(hwnd, SW_HIDE);
+    //HWND hwnd = GetConsoleWindow();
+    //ShowWindow(hwnd, SW_HIDE);
     
-
-    // Uruchomienie menu wyboru trybu gry
+    // Pêtla Menu
     while (true) {
         GameMenu menu;
         GameMode selectedMode = menu.run();
-
         sf::RenderWindow& menuWindow = menu.getWindow();
 
         // Sprawdzenie wybranego trybu SERVER / CLIENT
@@ -29,14 +27,14 @@ int main() {
         }
         else if (selectedMode == GameMode::CLIENT) {
             std::cout << "Running as client..." << std::endl;
-            // Utworzenie i uruchomienie klienta
             GameClient client(menuWindow);
 			// okno dialogowe do wpisania adresu IP
             if (client.showConnectDialog()) {
                 client.run(menu.nicknameInput, menu.selectedColor);
             }
-        }
-        else break;
+		}
+		else break;
+
     }
     return 0;
 }
